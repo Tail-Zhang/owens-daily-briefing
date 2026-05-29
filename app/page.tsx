@@ -2,8 +2,7 @@ import Image from 'next/image'
 import { getAllUpdates } from '@/lib/brands'
 import { categoryLabels, type BrandUpdate } from '@/lib/types'
 import { marked } from 'marked'
-
-export const revalidate = 3600
+import ExpandableCard from '@/components/home/ExpandableCard'
 
 function CategoryBadge({ category }: { category: BrandUpdate['category'] }) {
   const colors: Record<string, string> = {
@@ -22,7 +21,10 @@ function CategoryBadge({ category }: { category: BrandUpdate['category'] }) {
 }
 
 export default async function HomePage() {
-  const updates = await getAllUpdates()
+  const updates = (await getAllUpdates()).map((u) => ({
+    ...u,
+    contentHtml: marked.parse(u.content) as string,
+  }))
 
   return (
     <>
@@ -50,75 +52,71 @@ export default async function HomePage() {
 
         <div className="space-y-8">
           {updates.map((update) => (
-            <article
-              key={update.slug}
-              className="bg-white border border-cream-200 rounded-xl overflow-hidden"
-            >
-              {/* Image */}
-              {update.image && (
-                <div className="relative h-52 md:h-64 bg-cream-100">
-                  <Image
-                    src={update.image}
-                    alt={update.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 672px"
-                  />
-                </div>
-              )}
-
-              {/* Content */}
-              <div className="p-5 md:p-6">
-                {/* Meta */}
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-sm text-cream-500 font-medium">
-                    {update.brandNameEn}
-                  </span>
-                  <span className="text-cream-300 text-xs">·</span>
-                  <span className="text-xs text-cream-400">
-                    {update.brandNameCn}
-                  </span>
-                  <span className="text-cream-300 text-xs">·</span>
-                  <CategoryBadge category={update.category} />
-                </div>
-
-                {/* Title */}
-                <h3 className="text-lg leading-snug text-cream-900 mb-2">
-                  {update.title}
-                </h3>
-
-                {/* Summary */}
-                <p className="text-sm text-cream-600 leading-relaxed mb-4">
-                  {update.summary}
-                </p>
-
-                {/* Tags */}
-                {update.tags && update.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {update.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs text-cream-500 bg-cream-50 border border-cream-200 px-2 py-0.5 rounded-md"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
+              <article
+                key={update.slug}
+                className="bg-white border border-cream-200 rounded-xl overflow-hidden"
+              >
+                {/* Image */}
+                {update.image && (
+                  <div className="relative h-52 md:h-64 bg-cream-100">
+                    <Image
+                      src={update.image}
+                      alt={update.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 672px"
+                    />
                   </div>
                 )}
 
-                {/* Full MDX Content */}
-                <div className="prose border-t border-cream-100 pt-4">
-                  <div dangerouslySetInnerHTML={{ __html: marked.parse(update.content) }} />
-                </div>
+                {/* Content */}
+                <div className="p-5 md:p-6">
+                  {/* Meta */}
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-sm text-cream-500 font-medium">
+                      {update.brandNameEn}
+                    </span>
+                    <span className="text-cream-300 text-xs">·</span>
+                    <span className="text-xs text-cream-400">
+                      {update.brandNameCn}
+                    </span>
+                    <span className="text-cream-300 text-xs">·</span>
+                    <CategoryBadge category={update.category} />
+                  </div>
 
-                {/* Date */}
-                <div className="mt-6 pt-4 border-t border-cream-100">
-                  <time className="text-xs text-cream-400" dateTime={update.date}>
-                    {update.date}
-                  </time>
+                  {/* Title */}
+                  <h3 className="text-lg leading-snug text-cream-900 mb-1">
+                    {update.title}
+                  </h3>
+
+                  {/* Expandable detail */}
+                  <ExpandableCard
+                    summary={update.summary}
+                    contentHtml={update.contentHtml}
+                  />
+
+                  {/* Tags */}
+                  {update.tags && update.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-4">
+                      {update.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-xs text-cream-500 bg-cream-50 border border-cream-200 px-2 py-0.5 rounded-md"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Date */}
+                  <div className="mt-4 pt-4 border-t border-cream-100">
+                    <time className="text-xs text-cream-400" dateTime={update.date}>
+                      {update.date}
+                    </time>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
           ))}
         </div>
       </section>
