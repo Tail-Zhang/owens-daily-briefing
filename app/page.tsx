@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { getAllUpdates } from '@/lib/brands'
 import { categoryLabels, type BrandUpdate } from '@/lib/types'
-import { MDXRemote } from 'next-mdx-remote/rsc'
+import { marked } from 'marked'
 
 export const revalidate = 3600
 
@@ -108,7 +108,7 @@ export default async function HomePage() {
 
                 {/* Full MDX Content */}
                 <div className="prose border-t border-cream-100 pt-4">
-                  <MDXRemote source={update.content} />
+                  <div dangerouslySetInnerHTML={{ __html: marked.parse(update.content) }} />
                 </div>
 
                 {/* Date */}
